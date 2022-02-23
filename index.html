@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="volumetrics.js"></script>
+        <link rel="stylesheet" href="index.css">
+        <link rel="icon" href="data:,">
+
+        <script type='glsl/vertex'>
+            attribute vec2 coords;
+            
+            void main(void) {
+              gl_Position = vec4(coords.xy, 0.0, 1.0);
+            }
+          </script>
+          
+          <script type='glsl/fragment'>precision highp float;
+          
+            // Constants
+            #define PI 3.1415925359
+            #define TWO_PI 6.2831852
+            #define MAX_STEPS 200
+            #define MAX_DIST 200.
+            #define SURFACE_DIST .01
+
+            uniform vec2 u_resolution;
+            uniform vec4 mouse;
+            uniform float u_time;
+             
+            float GetDist(vec3 p)
+            {
+                vec4 s = vec4(0,1,7. + sin(u_time)*3.,1); //Sphere. xyz is position w is radius
+                float sphereDist = length(p-s.xyz) - s.w;
+                float planeDist = p.y;
+                float d = min(sphereDist,planeDist);
+             
+                return d;
+            }
+             
+            float RayMarch(vec3 ro, vec3 rd) 
+            {
+                float dO = 0.; //Distane Origin
+                for(int i=0;i<MAX_STEPS;i++)
+                {
+                    vec3 p = ro + rd * dO;
+                    float ds = GetDist(p); // ds is Distance Scene
+                    dO += ds;
+                    if(dO > MAX_DIST || ds < SURFACE_DIST) break;
+                }
+                return dO;
+            }
+
+             
+             void main(void) {
+                // vec2 xy = gl_FragCoord.xy / u_resolution;
+
+                vec2 uv = (gl_FragCoord.xy-.5*u_resolution.xy)/u_resolution.y;
+                vec3 ro = vec3(0,1,0); // Ray Origin/ Camera
+                vec3 rd = normalize(vec3(uv.x,uv.y,1));
+                float d = RayMarch(ro,rd); // Distance
+                d/= 10.;
+                vec3 color = vec3(d);
+                
+                // Set the output color
+                gl_FragColor = vec4(color,1.0);
+
+            //    gl_FragColor = vec4(uv, 0, 1);
+             }
+        </script>
+        <script type='glsl/vertex' id="glsl/vertex" src="shader.vert"></script>
+        <script type='glsl/fragment' id="glsl/fragment" src="shader.frag"></script>
+    </head>
+    <body>
+        <canvas id="glCanvas"></canvas>
+    </body>
+</html>
