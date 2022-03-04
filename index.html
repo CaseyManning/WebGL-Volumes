@@ -6,31 +6,201 @@
         <link rel="stylesheet" href="index.css">
         <link rel="icon" href="data:,">
 
-        <script type='glsl/vertex'>
-            attribute vec2 coords;
-            
-            void main(void) {
-              gl_Position = vec4(coords.xy, 0.0, 1.0);
+        <script type='glsl/vertex'>#version 300 es
+            in vec4 coords;
+
+            struct Ray {
+                vec3 origin;
+                vec3 dir;
+            };
+
+            out Ray vRay;
+
+ 
+            void main() {
+                // Hardcoded for now. This should the camera position.
+                vec3 cameraPosition = vec3(0.0, 0.0, 2.0);
+
+                vRay.dir = coords.xyz - cameraPosition;
+                vRay.origin = cameraPosition + vec3(0.5);
+                gl_Position = coords;
             }
           </script>
           
-          <script type='glsl/fragment'>precision highp float;
-          
-            // Constants
+          <script type='glsl/fragment'>#version 300 es
+
+          precision highp float;
+
             #define PI 3.1415925359
             #define TWO_PI 6.2831852
             #define MAX_STEPS 200
             #define MAX_DIST 200.
             #define SURFACE_DIST .01
 
+            #define NB_STEPS 100
+
+#define M_PI 3.14159265358979323846
+
+float rand(vec2 co){return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);}
+float rand (vec2 co, float l) {return rand(vec2(rand(co), l));}
+float rand (vec2 co, float l, float t) {return rand(vec2(rand(co, l), t));}
+
+float perlin(vec2 p, float dim, float time) {
+	vec2 pos = floor(p * dim);
+	vec2 posx = pos + vec2(1.0, 0.0);
+	vec2 posy = pos + vec2(0.0, 1.0);
+	vec2 posxy = pos + vec2(1.0);
+	
+	float c = rand(pos, dim, time);
+	float cx = rand(posx, dim, time);
+	float cy = rand(posy, dim, time);
+	float cxy = rand(posxy, dim, time);
+	
+	vec2 d = fract(p * dim);
+	d = -0.5 * cos(d * M_PI) + 0.5;
+	
+	float ccx = mix(c, cx, d.x);
+	float cycxy = mix(cy, cxy, d.x);
+	float center = mix(ccx, cycxy, d.y);
+	
+	return center * 2.0 - 1.0;
+}
+
+vec3 mod289(vec3 x) {
+  return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+vec4 mod289(vec4 x) {
+  return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+vec4 permute(vec4 x) {
+     return mod289(((x*34.0)+10.0)*x);
+}
+
+vec4 taylorInvSqrt(vec4 r)
+{
+  return 1.79284291400159 - 0.85373472095314 * r;
+}
+
+float snoise(vec3 v)
+  { 
+  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
+  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+
+// First corner
+  vec3 i  = floor(v + dot(v, C.yyy) );
+  vec3 x0 =   v - i + dot(i, C.xxx) ;
+
+// Other corners
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min( g.xyz, l.zxy );
+  vec3 i2 = max( g.xyz, l.zxy );
+
+  //   x0 = x0 - 0.0 + 0.0 * C.xxx;
+  //   x1 = x0 - i1  + 1.0 * C.xxx;
+  //   x2 = x0 - i2  + 2.0 * C.xxx;
+  //   x3 = x0 - 1.0 + 3.0 * C.xxx;
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y
+  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y
+
+// Permutations
+  i = mod289(i); 
+  vec4 p = permute( permute( permute( 
+             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
+           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+
+// Gradients: 7x7 points over a square, mapped onto an octahedron.
+// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)
+  float n_ = 0.142857142857; // 1.0/7.0
+  vec3  ns = n_ * D.wyz - D.xzx;
+
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)
+
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)
+
+  vec4 x = x_ *ns.x + ns.yyyy;
+  vec4 y = y_ *ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+
+  vec4 b0 = vec4( x.xy, y.xy );
+  vec4 b1 = vec4( x.zw, y.zw );
+
+  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;
+  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;
+  vec4 s0 = floor(b0)*2.0 + 1.0;
+  vec4 s1 = floor(b1)*2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+
+  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+
+  vec3 p0 = vec3(a0.xy,h.x);
+  vec3 p1 = vec3(a0.zw,h.y);
+  vec3 p2 = vec3(a1.xy,h.z);
+  vec3 p3 = vec3(a1.zw,h.w);
+
+//Normalise gradients
+  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+  p0 *= norm.x;
+  p1 *= norm.y;
+  p2 *= norm.z;
+  p3 *= norm.w;
+
+// Mix final noise value
+  vec4 m = max(0.5 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+  m = m * m;
+  return 105.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), 
+                                dot(p2,x2), dot(p3,x3) ) );
+  }
+
             uniform vec2 u_resolution;
-            uniform vec4 mouse;
+            uniform vec2 mouse;
             uniform float u_time;
+
+            out vec4 col;
+
+            struct Ray {
+                vec3 origin;
+                vec3 dir;
+            };
+
+            in Ray vRay;
+
+            bool computeNearFar(Ray ray, inout float near, inout float far) {
+                // Ray is assumed to be in local coordinates, ie:
+                // ray = inverse(objectMatrix * invCameraMatrix) * ray
+                // Equation of ray: O + D * t
+
+                vec3 invRay = 1.0 / ray.dir;
+
+                // Shortcut here, it should be: `aabbMin - ray.origin`.
+                // As we are always using normalized AABB, we can skip the line
+                // `(0, 0, 0) - ray.origin`.
+                vec3 tbottom = - invRay * ray.origin;
+                vec3 ttop = invRay * (vec3(1.0) - ray.origin);
+
+                vec3 tmin = min(ttop, tbottom);
+                vec3 tmax = max(ttop, tbottom);
+
+                float largestMin = max(max(tmin.x, tmin.y), max(tmin.x, tmin.z));
+                float smallestMax = min(min(tmax.x, tmax.y), min(tmax.x, tmax.z));
+
+                near = largestMin;
+                far = smallestMax;
+
+                return smallestMax > largestMin;
+            }
+
              
             float GetDist(vec3 p)
             {
                 vec4 s = vec4(0,1,7. + sin(u_time)*3.,1); //Sphere. xyz is position w is radius
-                float sphereDist = length(p-s.xyz) - s.w;
+                float sphereDist = length(p-s.xyz) - s.w + perlin(p.xy, 2.0, 1.) / 10.;
                 float planeDist = p.y;
                 float d = min(sphereDist,planeDist);
              
@@ -50,21 +220,101 @@
                 return dO;
             }
 
+            float traceShadowRay(vec3 pos) {
+
+                float acc = 0.;
+                for (int i = 0; i < NB_STEPS/3; ++i) {
+                    // Get the voxel at the current ray position.
+                    float s = 0.;
+                    if(length(pos - vec3(0.5, 0.5, 0.5)) < 0.5) {
+                        s = 0.0004;
+                    } else {
+                        s = 0.;
+                    }
+
+                    // The more we already accumulated, the less opacity we apply.
+                    acc += (1.0 - acc) * s;
+
+                    vec3 dir = normalize(vec3(mouse.x, mouse.y, 0.)) * 0.05;
+                    pos += dir;
+
+                    if (acc > 0.95) { break; }
+
+                }
+                return acc;
+            }
+
+            vec4 traceViewRay(Ray ray) {
+                float acc = 0.;
+                vec3 rgbval = vec3(0.);
+                for (int i = 0; i < NB_STEPS; ++i) {
+                    // Get the voxel at the current ray position.
+                    float s = 0.;
+                    if(length(ray.origin - vec3(0.5, 0.5, 0.5)) < 0.5) {
+                        s = 0.01;
+                    } else {
+                        s = 0.;
+                    }
+                    float shadowAmt = traceShadowRay(ray.origin);
+                    // shadowAmt = ray.origin.y;
+
+                    if(s > 0.) {
+                        rgbval += vec3(shadowAmt);
+                    }
+
+                    // The more we already accumulated, the less opacity we apply.
+                     acc += (1.0 - acc) * s;
+
+                    // Early termination: after this threshold, accumulating becomes insignificant.
+                    if (acc > 0.95) { break; }
+
+                    ray.origin += ray.dir;
+                }
+                return vec4(rgbval,acc);
+            }
              
              void main(void) {
                 // vec2 xy = gl_FragCoord.xy / u_resolution;
 
-                vec2 uv = (gl_FragCoord.xy-.5*u_resolution.xy)/u_resolution.y;
-                vec3 ro = vec3(0,1,0); // Ray Origin/ Camera
-                vec3 rd = normalize(vec3(uv.x,uv.y,1));
-                float d = RayMarch(ro,rd); // Distance
-                d/= 10.;
-                vec3 color = vec3(d);
+                // vec2 uv = (gl_FragCoord.xy-.5*u_resolution.xy)/u_resolution.y;
+                // vec3 ro = vec3(0,1,0); // Ray Origin/ Camera
+                // vec3 rd = normalize(vec3(uv.x,uv.y,1));
+                // float d = RayMarch(ro,rd); // Distance
+                // d/= 10.;
+                // vec3 color = vec3(d);
                 
-                // Set the output color
-                gl_FragColor = vec4(color,1.0);
+                // // Set the output color
+                // col = vec4(color,1.0);
 
-            //    gl_FragColor = vec4(uv, 0, 1);
+
+                Ray ray;
+                ray.origin = vRay.origin;
+                ray.dir = normalize(vRay.dir);
+
+                // Solves a ray - Unit Box equation to determine the value of the closest and
+                // furthest intersections.
+                float near = 0.0;
+                float far = 0.0;
+                computeNearFar(ray, near, far);
+
+                // Moves the ray origin to the closest intersection.
+                // We don't want to spend time sampling nothing out of the volume!
+                ray.origin = ray.origin + near * ray.dir;
+
+                vec3 inc = 1.0 / abs( ray.dir );
+                // Step size between two samples
+                float delta = min(inc.x, min(inc.y, inc.z)) / float(NB_STEPS);
+                // The ray direction is now scaled by the step size.
+                ray.dir = ray.dir * delta;
+
+                // Hardcoded for now: diffuse color of our cloud.
+                vec3 baseColor = vec3(0.2);
+
+                vec4 bg = vec4(0.4, 0.5, 0.95, 1.);
+
+                vec4 result = traceViewRay(ray);
+
+                col = bg*(1.-result.a) + result*result.a;
              }
         </script>
         <script type='glsl/vertex' id="glsl/vertex" src="shader.vert"></script>

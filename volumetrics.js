@@ -1,11 +1,14 @@
 //ref: https://stackoverflow.com/questions/55197347/webgl-full-screen-quad-or-triangle-for-invoking-fragment-shader-for-every-pixel
 
+var mouseX = 0;
+var mouseY = 0;
+
 function main() {
     const canvas = document.querySelector("#glCanvas");
     canvas.width = window.innerWidth; //document.width is obsolete
     canvas.height = window.innerHeight; //document.height is obsolete
     // Initialize the GL context
-    const gl = canvas.getContext("webgl");
+    const gl = canvas.getContext("webgl2");
   
     // Only continue if WebGL is available and working
     if (gl === null) {
@@ -40,11 +43,12 @@ function main() {
     //   let ev = e && e.touches ? e.touches[0] : e;
     //   let x = ev ? ev.clientX : 250;
     //   let y = ev ? h - ev.clientY: 111;
-      gl.uniform2f(mouse, 0, 0);
+      console.log(mouseX / w, mouseY / h);
+      gl.uniform2f(mouse, 0.5 - mouseX / w, 0.5 - mouseY / h);
       gl.uniform2f(u_resolution, w, h);
       gl.uniform1f(u_time, t/1000);
       gl.viewport(0, 0, w, h);
-      gl.clearColor(0, 0, 0, 0);
+      gl.clearColor(0, 0, 0, 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       requestAnimationFrame(draw);
     }
@@ -59,3 +63,8 @@ function main() {
   }
   
   window.onload = main;
+
+  window.onmousemove = function(e){
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  }
