@@ -283,16 +283,11 @@ float snoise(vec3 v)
                 // d/= 10.;
                 // vec3 color = vec3(d);
                 
-                // // Set the output color
-                // col = vec4(color,1.0);
-
-
                 Ray ray;
                 ray.origin = vRay.origin;
                 ray.dir = normalize(vRay.dir);
 
                 // Solves a ray - Unit Box equation to determine the value of the closest and
-                // furthest intersections.
                 float near = 0.0;
                 float far = 0.0;
                 computeNearFar(ray, near, far);
@@ -311,7 +306,7 @@ float snoise(vec3 v)
 
                 vec4 result = traceViewRay(ray);
 
-                col = bg*(1.-result.a) + result*result.a;
+                col = bg*(1.-result.a) + result;
              }
         </script>
         <script type='glsl/vertex' id="glsl/vertex" src="shader.vert"></script>
