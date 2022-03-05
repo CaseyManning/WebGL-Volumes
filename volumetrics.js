@@ -5,7 +5,18 @@ var mouseY = 0;
 
 var fdraw;
 
+var animating = true;
+
+var fpslabel;
+
+// var gl;
+
+var oldTime;
+
 function main() {
+
+    fpslabel = document.getElementById("fpslabel");
+
     const canvas = document.querySelector("#glCanvas");
     canvas.width = window.innerWidth; //document.width is obsolete
     canvas.height = window.innerHeight; //document.height is obsolete
@@ -20,6 +31,14 @@ function main() {
 
     var h = gl.drawingBufferHeight;
     var w = gl.drawingBufferWidth;
+
+    function shader(name, type) {
+      let src = [].slice.call(document.scripts).find(s => s.type === name).innerHTML;
+      let sid = gl.createShader(type);
+      gl.shaderSource(sid, src);
+      gl.compileShader(sid);
+      gl.attachShader(pid, sid);
+    }
     
     let pid = gl.createProgram();
     shader('glsl/vertex', gl.VERTEX_SHADER);
@@ -79,36 +98,51 @@ function main() {
     
       gl.uniform1i(u_volume, 0);
 
+      gl.uniform2f(u_resolution, w, h);
+
+
   
     function draw(t) {
+      
+      fpslabel.innerHTML = "fps: " + Math.floor(1 / ((t - oldTime)/1000));
     //   let ev = e && e.touches ? e.touches[0] : e;
     //   let x = ev ? ev.clientX : 250;
     //   let y = ev ? h - ev.clientY: 111;
-      console.log(mouseX / w, mouseY / h);
       gl.uniform2f(mouse, 0.5 - mouseX / w, 0.5 - mouseY / h);
-      gl.uniform2f(u_resolution, w, h);
       gl.uniform1f(u_time, t/1000);
-      gl.viewport(0, 0, w, h);
-      gl.clearColor(0, 0, 0, 1);
+      // gl.viewport(0, 0, w, h);
+      // gl.clearColor(0, 0, 0, 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-      // requestAnimationFrame(draw);
+      if(animating) {
+        requestAnimationFrame(draw);
+      }
+    oldTime = t;
+
     }
     fdraw = draw;
-  
-    function shader(name, type) {
-        let src = [].slice.call(document.scripts).find(s => s.type === name).innerHTML;
-        let sid = gl.createShader(type);
-        gl.shaderSource(sid, src);
-        gl.compileShader(sid);
-        gl.attachShader(pid, sid);
-    }
+
+    requestAnimationFrame(fdraw);
+
   }
   
   window.onload = main;
 
   window.onmousemove = function(e){
+    
     mouseX = e.clientX;
     mouseY = e.clientY;
-    requestAnimationFrame(fdraw);
+    // if(e.buttons != 0) {
+    //   requestAnimationFrame(fdraw);
+    // }
 
   }
+  window.onkeyup = function(e){
+    if(e.keyCode == 32){
+      if(animating) {
+        animating = false;
+      } else {
+        requestAnimationFrame(fdraw);
+        animating = true;
+      }
+    }
+}

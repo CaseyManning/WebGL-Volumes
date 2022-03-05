@@ -10,3 +10,14 @@ canvas {
     height: 100%;
     position: absolute;
 }
+
+#fpslabel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    color: white;
+    font-family: monospace;
+}
