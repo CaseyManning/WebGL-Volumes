@@ -36,7 +36,47 @@ function main() {
     let mouse = gl.getUniformLocation(pid, 'mouse');
     let u_resolution = gl.getUniformLocation(pid, 'u_resolution');
     let u_time = gl.getUniformLocation(pid, 'u_time');
+    let u_volume = gl.getUniformLocation(pid, 'uVolume');
     
+    var SIZE = 32;
+    
+    var perl = new Perlin(12);
+
+    var data = new Uint8Array(SIZE * SIZE * SIZE);
+    for (var k = 0; k < SIZE; ++k) {
+        for (var j = 0; j < SIZE; ++j) {
+            for (var i = 0; i < SIZE; ++i) {
+                data[i + j * SIZE + k * SIZE * SIZE] = perl.noise(i/10, j/10, k/10) * 256;
+            }
+        }
+    }
+
+    var texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_3D, texture);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_BASE_LEVEL, 0);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAX_LEVEL, Math.log2(SIZE));
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    gl.texImage3D(
+        gl.TEXTURE_3D,  // target
+        0,              // level
+        gl.R8,        // internalformat
+        SIZE,           // width
+        SIZE,           // height
+        SIZE,           // depth
+        0,              // border
+        gl.RED,         // format
+        gl.UNSIGNED_BYTE,       // type
+        data            // pixel
+      );
+
+      gl.generateMipmap(gl.TEXTURE_3D);
+
+    
+      gl.uniform1i(u_volume, 0);
+
     requestAnimationFrame(draw);
   
     function draw(t) {

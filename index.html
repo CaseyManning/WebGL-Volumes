@@ -2,6 +2,7 @@
 <html>
     <head>
         <meta charset="utf-8">
+        <script src="perlin.js"></script>
         <script src="volumetrics.js"></script>
         <link rel="stylesheet" href="index.css">
         <link rel="icon" href="data:,">
@@ -29,7 +30,11 @@
           
           <script type='glsl/fragment'>#version 300 es
 
-          precision highp float;
+            precision highp float;
+
+
+            precision highp sampler3D;
+            uniform sampler3D uVolume;
 
             #define PI 3.1415925359
             #define TWO_PI 6.2831852
@@ -198,7 +203,7 @@ float snoise(vec3 v)
 
             float getCloudDensity(vec3 pos) {
               float density = 0.;
-              if(length(pos - vec3(0.5, 0.5, 0.5)) < 0.5 + snoise(pos*3.)/10.) {
+              if(length(pos - vec3(0.5, 0.5, 0.5)) < 0.5 + texture(uVolume, pos).r / 2.) {
                   density = 0.01;
               } else {
                   density = 0.;
@@ -213,7 +218,6 @@ float snoise(vec3 v)
                     // Get the voxel at the current ray position.
                     float s = getCloudDensity(pos)/10.;
                     
-
                     // The more we already accumulated, the less opacity we apply.
                     acc += (1.0 - acc) * s;
 
