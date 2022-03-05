@@ -203,8 +203,9 @@ float snoise(vec3 v)
 
             float getCloudDensity(vec3 pos) {
               float density = 0.;
-              if(length(pos - vec3(0.5, 0.5, 0.5)) < 0.5 + texture(uVolume, pos).r / 2.) {
-                  density = 0.01;
+              // float nosie = texture(uVolume, pos).r/2;
+              if(length(pos - vec3(0.5, 0.5, 0.5)) < 0.2 + texture(uVolume, pos).r/2.) {
+                  density = 0.05;
               } else {
                   density = 0.;
               }
@@ -216,7 +217,7 @@ float snoise(vec3 v)
                 float acc = 0.;
                 for (int i = 0; i < NB_STEPS/2; ++i) {
                     // Get the voxel at the current ray position.
-                    float s = getCloudDensity(pos)/10.;
+                    float s = getCloudDensity(pos);
                     
                     // The more we already accumulated, the less opacity we apply.
                     acc += (1.0 - acc) * s;
@@ -235,19 +236,19 @@ float snoise(vec3 v)
                 vec3 rgbval = vec3(0.);
                 for (int i = 0; i < NB_STEPS; ++i) {
                     // Get the voxel at the current ray position.
-                    float s = getCloudDensity(ray.origin);
+                    float density = getCloudDensity(ray.origin);
                     
                     float shadowAmt = traceShadowRay(ray.origin);
                     // shadowAmt = ray.origin.y;
 
-                    vec3 ambient = vec3(0.001);
+                    vec3 ambient = vec3(0.1);
 
-                    if(s > 0.) {
-                        rgbval += vec3(shadowAmt) + ambient;
+                    if(density > 0.) {
+                        rgbval += (vec3(shadowAmt) + ambient) * density;
                     }
 
                     // The more we already accumulated, the less opacity we apply.
-                     acc += (1.0 - acc) * s;
+                     acc += (1.0 - acc) * density;
 
                     // Early termination: after this threshold, accumulating becomes insignificant.
                     if (acc > 0.95) { break; }

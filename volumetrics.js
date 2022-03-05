@@ -3,6 +3,8 @@
 var mouseX = 0;
 var mouseY = 0;
 
+var fdraw;
+
 function main() {
     const canvas = document.querySelector("#glCanvas");
     canvas.width = window.innerWidth; //document.width is obsolete
@@ -77,7 +79,6 @@ function main() {
     
       gl.uniform1i(u_volume, 0);
 
-    requestAnimationFrame(draw);
   
     function draw(t) {
     //   let ev = e && e.touches ? e.touches[0] : e;
@@ -90,8 +91,9 @@ function main() {
       gl.viewport(0, 0, w, h);
       gl.clearColor(0, 0, 0, 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-      requestAnimationFrame(draw);
+      // requestAnimationFrame(draw);
     }
+    fdraw = draw;
   
     function shader(name, type) {
         let src = [].slice.call(document.scripts).find(s => s.type === name).innerHTML;
@@ -107,4 +109,6 @@ function main() {
   window.onmousemove = function(e){
     mouseX = e.clientX;
     mouseY = e.clientY;
+    requestAnimationFrame(fdraw);
+
   }
