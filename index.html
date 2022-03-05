@@ -43,6 +43,8 @@
 
             #define NB_STEPS 50
 
+            #define hash(p)  fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453)
+
             uniform vec2 u_resolution;
             uniform vec2 mouse;
             uniform float u_time;
@@ -88,6 +90,9 @@
             }
 
             float traceShadowRay(vec3 pos) {
+                vec3 dir = normalize(vec3(mouse.x, -mouse.y, 0.)) * 0.05;
+                
+                pos += dir* 2.5*hash(pos.xy);
 
                 float acc = 0.;
                 for (int i = 0; i < NB_STEPS/2; ++i) {
@@ -97,7 +102,6 @@
                     // The more we already accumulated, the less opacity we apply.
                     acc += (1.0 - acc) * s;
 
-                    vec3 dir = normalize(vec3(mouse.x, -mouse.y, 0.)) * 0.05;
                     pos += dir;
 
                     if (acc > 0.95) { break; }
@@ -178,6 +182,7 @@
 
                 vec4 bg = vec4(0., 0., 0., 1.);
 
+                ray.origin += ray.dir * 1.5*hash(gl_FragCoord.xy);
                 vec4 result = traceViewRay(ray);
 
                 col = bg*(1.-result.a) + result;
