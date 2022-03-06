@@ -116,7 +116,7 @@
 
                     float transmittance = 0.;
                     if(density > 0.) {
-                        float lineardensity = traceShadowRay(ray.origin);
+                        float lineardensity = traceShadowRay(ray.origin)*4.;
                         transmittance = exp(-lineardensity);
                     }
                     // shadowAmt = ray.origin.y;
@@ -201,6 +201,10 @@
     </head>
     <body>
         <canvas id="glCanvas"></canvas>
-        <p id="fpslabel"></p>
+        <div id="controls">
+            <p id="fpslabel"></p>
+            <!-- <input type="range" min="1" max="100" value="50" class="slider" id="myRange"> -->
+        </div>
+        
     </body>
 </html>

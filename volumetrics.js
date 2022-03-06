@@ -121,7 +121,7 @@ function main() {
       gl.viewport(0, 0, w, h);
       gl.clearColor(0, 0, 0, 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-      if(animating && document.hasFocus()) {
+      if(animating) {
         requestAnimationFrame(draw);
       }
     oldTime = t;
@@ -146,13 +146,13 @@ function main() {
     // }
 
   }
-  // window.onkeyup = function(e){
-  //   if(e.keyCode == 32){
-  //     if(animating) {
-  //       animating = false;
-  //     } else {
-  //       requestAnimationFrame(fdraw);
-  //       animating = true;
-  //     }
-  //   }
-// }
+  window.onkeyup = function(e){
+    if(e.keyCode == 32){
+      if(animating) {
+        animating = false;
+      } else {
+        requestAnimationFrame(fdraw);
+        animating = true;
+      }
+    }
+  }
