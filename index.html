@@ -47,6 +47,8 @@
             uniform float u_time;
             uniform float u_density;
             uniform float u_shadowfactor;
+            uniform float u_light;
+            uniform float u_ambient;
 
             out vec4 col;
 
@@ -93,7 +95,7 @@
                 float density = 0.;
                 // float nosie = texture(uVolume, pos).r/2;
                 if(length(pos - vec3(0.5, 0.5, 0.5)) < 0.2 + texture(uVolume, pos).r/2.) {
-                    density = u_density/100.;
+                    density = u_density/200.;
                 } else {
                     density = 0.;
                 }
@@ -123,6 +125,22 @@
                 return acc;
             }
 
+            float computeAmbient(vec3 pos) {
+                float shadowdist = 0.;
+
+                vec3 lpos = pos + vec3(0.,0.,0.05);
+                float lsample = getCloudDensity(pos);
+                shadowdist += lsample;
+                lpos = pos + vec3(0.,0.,0.1);
+                lsample = getCloudDensity(pos);
+                shadowdist += lsample;
+                lpos = pos + vec3(0.,0.,0.2);
+                lsample = getCloudDensity(pos);
+                shadowdist += lsample;
+
+                return shadowdist;
+            }
+
             vec4 traceViewRay(Ray ray) {
                 float acc = 0.;
                 vec3 rgbval = vec3(0.);
@@ -135,13 +153,14 @@
                         float lineardensity = traceShadowRay(ray.origin)*u_shadowfactor;
                         transmittance = exp(-lineardensity);
                     }
-                    // shadowAmt = ray.origin.y;
 
-                    vec3 ambient = vec3(0.1, 0.1, 0.1);
-                    vec3 volumeColor = vec3(0.5);
+                    float ambocc = computeAmbient(ray.origin);
+
+                    vec3 ambient = vec3(0.5, 0.5, 0.5) * u_ambient * ambocc / (u_density/50.);
+                    vec3 volumeColor = vec3(1.);
 
                     vec3 lightColor = vec3(1., 1., 1.);
-                    vec3 lightContrib = lightColor * transmittance;
+                    vec3 lightContrib = lightColor * transmittance * u_light;
 
                     if(density > 0.) {
                         rgbval += (lightContrib + ambient) * density * volumeColor;
@@ -187,7 +206,6 @@
                 ray.dir = rot * ray.dir;
                 ray.origin += vec3(0.5, 0.5, 0.5);
 
-
                 vec3 inc = 1.0 / abs( ray.dir );
                 // Step size between two samples
                 float delta = min(inc.x, min(inc.y, inc.z)) / float(NB_STEPS);
@@ -211,11 +229,19 @@
             <p id="fpslabel"></p>
             <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
                 <p style="margin-top: 2px; margin-right: 10px;">density</p>
-                <input type="range" min="1" max="50" value="5" class="slider" id="densityslider">
+                <input type="range" min="0" max="100" value="10" class="slider" id="densityslider">
             </div>
             <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
                 <p style="margin-top: 2px; margin-right: 10px;">scattering</p>
                 <input type="range" min="0" max="10" value="5" class="slider" id="shadowslider">
+            </div>
+            <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
+                <p style="margin-top: 2px; margin-right: 10px;">directional</p>
+                <input type="range" min="0" max="100" value="100" class="slider" id="lightslider">
+            </div>
+            <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
+                <p style="margin-top: 2px; margin-right: 10px;">ambient</p>
+                <input type="range" min="0" max="100" value="10" class="slider" id="ambientslider">
             </div>
         </div>
         

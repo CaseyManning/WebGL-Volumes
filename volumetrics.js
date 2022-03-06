@@ -63,6 +63,8 @@ function main() {
     let u_density = gl.getUniformLocation(pid, 'u_density');
     let u_shadowfactor = gl.getUniformLocation(pid, 'u_shadowfactor');
     let u_volume = gl.getUniformLocation(pid, 'uVolume');
+    let u_light = gl.getUniformLocation(pid, 'u_light');
+    let u_ambient = gl.getUniformLocation(pid, 'u_ambient');
     
     var SIZE = 32;
     
@@ -122,6 +124,8 @@ function main() {
       gl.uniform1f(u_time, t/1000);
       gl.uniform1f(u_density, document.getElementById("densityslider").value);
       gl.uniform1f(u_shadowfactor, document.getElementById("shadowslider").value);
+      gl.uniform1f(u_light, document.getElementById("lightslider").value/ 100.0) ;
+      gl.uniform1f(u_ambient, document.getElementById("ambientslider").value/ 100.0) ;
       gl.viewport(0, 0, w, h);
       gl.clearColor(0, 0, 0, 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
