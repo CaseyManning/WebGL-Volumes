@@ -49,6 +49,7 @@
             uniform float u_shadowfactor;
             uniform float u_light;
             uniform float u_ambient;
+            uniform float u_occlusion;
 
             out vec4 col;
 
@@ -94,7 +95,7 @@
                 int noiseSize = 32;
                 float density = 0.;
                 // float nosie = texture(uVolume, pos).r/2;
-                if(length(pos - vec3(0.5, 0.5, 0.5)) < 0.2 + texture(uVolume, pos).r/2.) {
+                if(length(pos - vec3(0.5, 0.5, 0.5)) < 0.2 + texture(uVolume, pos).r/2. + texture(uVolume, pos.xzy*5.).r/12.) {
                     density = u_density/200.;
                 } else {
                     density = 0.;
@@ -125,20 +126,45 @@
                 return acc;
             }
 
-            float computeAmbient(vec3 pos) {
+            float computeAmbient(vec3 pos, float stepLength) {
                 float shadowdist = 0.;
 
-                vec3 lpos = pos + vec3(0.,0.,0.05);
-                float lsample = getCloudDensity(pos);
-                shadowdist += lsample;
-                lpos = pos + vec3(0.,0.,0.1);
-                lsample = getCloudDensity(pos);
-                shadowdist += lsample;
-                lpos = pos + vec3(0.,0.,0.2);
-                lsample = getCloudDensity(pos);
-                shadowdist += lsample;
+                int nsteps = 2;
 
-                return shadowdist;
+                float accumDensity = 0.;
+
+                vec3 currentPos = pos.xyz;
+                for(int i = 0; i < nsteps; i++) {
+                    currentPos += vec3(0., 1., 0.) * stepLength;
+                    accumDensity += getCloudDensity(currentPos) * 2.;
+                }
+                currentPos = pos.xyz;
+                for(int i = 0; i < nsteps; i++) {
+                    currentPos += vec3(1., 0., 0.) * stepLength;
+                    accumDensity += getCloudDensity(currentPos) * 2.;
+                }
+                currentPos = pos.xyz;
+                for(int i = 0; i < nsteps; i++) {
+                    currentPos += vec3(0., 0., 1.) * stepLength;
+                    accumDensity += getCloudDensity(currentPos) * 2.;
+                }
+                currentPos = pos.xyz;
+                for(int i = 0; i < nsteps; i++) {
+                    currentPos += vec3(0., -1., 0.) * stepLength;
+                    accumDensity += getCloudDensity(currentPos) * 2.;
+                }
+                currentPos = pos.xyz;
+                for(int i = 0; i < nsteps; i++) {
+                    currentPos += vec3(-1., 0., 0.) * stepLength;
+                    accumDensity += getCloudDensity(currentPos) * 2.;
+                }
+                currentPos = pos.xyz;
+                for(int i = 0; i < nsteps; i++) {
+                    currentPos += vec3(0., 0., -1.) * stepLength;
+                    accumDensity += getCloudDensity(currentPos) * 2.;
+                }
+
+                return exp(-accumDensity / u_density * 15.);
             }
 
             vec4 traceViewRay(Ray ray) {
@@ -154,9 +180,10 @@
                         transmittance = exp(-lineardensity);
                     }
 
-                    float ambocc = computeAmbient(ray.origin);
+                    float ambocc = computeAmbient(ray.origin, length(ray.dir) * u_occlusion / 10.);
 
-                    vec3 ambient = vec3(0.5, 0.5, 0.5) * u_ambient * ambocc / (u_density/50.);
+                    vec3 ambient = vec3(ambocc) * u_ambient;
+
                     vec3 volumeColor = vec3(1.);
 
                     vec3 lightColor = vec3(1., 1., 1.);
@@ -242,6 +269,10 @@
             <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
                 <p style="margin-top: 2px; margin-right: 10px;">ambient</p>
                 <input type="range" min="0" max="100" value="10" class="slider" id="ambientslider">
+            </div>
+            <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
+                <p style="margin-top: 2px; margin-right: 10px;">occlusion radius</p>
+                <input type="range" min="0" max="50" value="10" class="slider" id="occlusionslider">
             </div>
         </div>
         
