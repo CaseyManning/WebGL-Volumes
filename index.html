@@ -45,8 +45,22 @@
             uniform vec2 u_resolution;
             uniform vec2 mouse;
             uniform float u_time;
+            uniform float u_density;
+            uniform float u_shadowfactor;
 
             out vec4 col;
+
+            mat3 rotationMatrix(vec3 axis, float angle) {
+              axis = normalize(axis);
+              float s = sin(angle);
+              float c = cos(angle);
+              float oc = 1.0 - c;
+              
+              return mat3(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,
+                          oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,
+                          oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c);
+}
+      
 
             struct Ray {
                 vec3 origin;
@@ -79,7 +93,7 @@
                 float density = 0.;
                 // float nosie = texture(uVolume, pos).r/2;
                 if(length(pos - vec3(0.5, 0.5, 0.5)) < 0.2 + texture(uVolume, pos).r/2.) {
-                    density = 0.05;
+                    density = u_density/100.;
                 } else {
                     density = 0.;
                 }
@@ -87,7 +101,9 @@
             }
 
             float traceShadowRay(vec3 pos) {
+                mat3 rot = rotationMatrix(vec3(0, 1, 0), u_time / 3.);
                 vec3 dir = normalize(vec3(mouse.x, -mouse.y, 0.)) * 0.05;
+                dir *= rot;
                 // vec3 dir = normalize(vec3(1, -1, 0.)) * 0.05;
                 
                 pos += dir* 2.5*hash(pos.xy);
@@ -116,7 +132,7 @@
 
                     float transmittance = 0.;
                     if(density > 0.) {
-                        float lineardensity = traceShadowRay(ray.origin)*4.;
+                        float lineardensity = traceShadowRay(ray.origin)*u_shadowfactor;
                         transmittance = exp(-lineardensity);
                     }
                     // shadowAmt = ray.origin.y;
@@ -146,17 +162,7 @@
                 return vec4(rgbval,acc);
             }
 
-            mat3 rotationMatrix(vec3 axis, float angle) {
-              axis = normalize(axis);
-              float s = sin(angle);
-              float c = cos(angle);
-              float oc = 1.0 - c;
-              
-              return mat3(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,
-                          oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,
-                          oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c);
-}
-             
+       
              void main(void) {
                 // vec2 xy = gl_FragCoord.xy / u_resolution;
 
@@ -203,7 +209,14 @@
         <canvas id="glCanvas"></canvas>
         <div id="controls">
             <p id="fpslabel"></p>
-            <!-- <input type="range" min="1" max="100" value="50" class="slider" id="myRange"> -->
+            <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
+                <p style="margin-top: 2px; margin-right: 10px;">density</p>
+                <input type="range" min="1" max="50" value="5" class="slider" id="densityslider">
+            </div>
+            <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
+                <p style="margin-top: 2px; margin-right: 10px;">scattering</p>
+                <input type="range" min="0" max="10" value="5" class="slider" id="shadowslider">
+            </div>
         </div>
         
     </body>

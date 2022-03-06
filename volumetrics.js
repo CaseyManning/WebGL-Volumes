@@ -60,6 +60,8 @@ function main() {
     let mouse = gl.getUniformLocation(pid, 'mouse');
     let u_resolution = gl.getUniformLocation(pid, 'u_resolution');
     let u_time = gl.getUniformLocation(pid, 'u_time');
+    let u_density = gl.getUniformLocation(pid, 'u_density');
+    let u_shadowfactor = gl.getUniformLocation(pid, 'u_shadowfactor');
     let u_volume = gl.getUniformLocation(pid, 'uVolume');
     
     var SIZE = 32;
@@ -118,6 +120,8 @@ function main() {
     //   let y = ev ? h - ev.clientY: 111;
       gl.uniform2f(mouse, 0.5 - mouseX / w, 0.5 - mouseY / h);
       gl.uniform1f(u_time, t/1000);
+      gl.uniform1f(u_density, document.getElementById("densityslider").value);
+      gl.uniform1f(u_shadowfactor, document.getElementById("shadowslider").value);
       gl.viewport(0, 0, w, h);
       gl.clearColor(0, 0, 0, 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
