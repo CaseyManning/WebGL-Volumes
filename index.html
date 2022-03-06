@@ -36,11 +36,6 @@
             precision highp sampler3D;
             uniform sampler3D uVolume;
 
-            #define PI 3.1415925359
-            #define TWO_PI 6.2831852
-            #define MAX_STEPS 200
-            #define MAX_DIST 200.
-
             #define STEP_DIST 0.1
 
             #define NB_STEPS 50
@@ -63,7 +58,6 @@
             bool computeNearFar(Ray ray, inout float near, inout float far) {
 
                 vec3 invRay = 1.0 / ray.dir;
-
 
                 vec3 tbottom = - invRay * ray.origin;
                 vec3 ttop = invRay * (vec3(1.0) - ray.origin);
@@ -93,8 +87,8 @@
             }
 
             float traceShadowRay(vec3 pos) {
-                // vec3 dir = normalize(vec3(mouse.x, -mouse.y, 0.)) * 0.05;
-                vec3 dir = normalize(vec3(1, -1, 0.)) * 0.05;
+                vec3 dir = normalize(vec3(mouse.x, -mouse.y, 0.)) * 0.05;
+                // vec3 dir = normalize(vec3(1, -1, 0.)) * 0.05;
                 
                 pos += dir* 2.5*hash(pos.xy);
 
@@ -126,8 +120,8 @@
                     }
                     // shadowAmt = ray.origin.y;
 
-                    vec3 ambient = vec3(0.1);
-                    vec3 volumeColor = vec3(0.8);
+                    vec3 ambient = vec3(0.05, 0.1, 0.15);
+                    vec3 volumeColor = vec3(0.65, 0.55, 0.45);
 
                     if(density > 0.) {
                         rgbval += (vec3(shadowAmt) + ambient) * density * volumeColor;
@@ -139,7 +133,11 @@
                     // Early termination: after this threshold, accumulating becomes insignificant.
                     if (acc > 0.95) { break; }
 
-                    ray.origin += ray.dir;
+                    float steplength = 1.;
+                    if(density == 0.) {
+                        // steplength = 1.5;
+                    }
+                    ray.origin += ray.dir*steplength;
                 }
                 return vec4(rgbval,acc);
             }
