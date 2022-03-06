@@ -66,6 +66,7 @@ function main() {
     let u_light = gl.getUniformLocation(pid, 'u_light');
     let u_ambient = gl.getUniformLocation(pid, 'u_ambient');
     let u_occlusion = gl.getUniformLocation(pid, 'u_occlusion');
+    let u_quality = gl.getUniformLocation(pid, 'u_quality');
     
     var SIZE = 32;
     
@@ -128,6 +129,7 @@ function main() {
       gl.uniform1f(u_light, document.getElementById("lightslider").value/ 100.0) ;
       gl.uniform1f(u_ambient, document.getElementById("ambientslider").value/ 100.0) ;
       gl.uniform1f(u_occlusion, document.getElementById("occlusionslider").value) ;
+      gl.uniform1i(u_quality, document.getElementById("qualityslider").value) ;
       gl.viewport(0, 0, w, h);
       gl.clearColor(0, 0, 0, 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);

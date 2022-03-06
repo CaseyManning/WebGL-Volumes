@@ -50,6 +50,7 @@
             uniform float u_light;
             uniform float u_ambient;
             uniform float u_occlusion;
+            uniform int u_quality;
 
             out vec4 col;
 
@@ -112,7 +113,7 @@
                 pos += dir* 2.5*hash(pos.xy);
 
                 float acc = 0.;
-                for (int i = 0; i < NB_STEPS/2; ++i) {
+                for (int i = 0; i < u_quality/2; ++i) {
                     float s = getCloudDensity(pos);
                     
                     // The more we already accumulated, the less opacity we apply.
@@ -129,7 +130,7 @@
             float computeAmbient(vec3 pos, float stepLength) {
                 float shadowdist = 0.;
 
-                int nsteps = 2;
+                int nsteps = 1;
 
                 float accumDensity = 0.;
 
@@ -180,7 +181,10 @@
                         transmittance = exp(-lineardensity);
                     }
 
-                    float ambocc = computeAmbient(ray.origin, length(ray.dir) * u_occlusion / 10.);
+                    float ambocc = 0.3;
+                    if(u_occlusion > 0.) {
+                        ambocc = computeAmbient(ray.origin, length(ray.dir) * u_occlusion / 10.);
+                    }
 
                     vec3 ambient = vec3(ambocc) * u_ambient;
 
@@ -235,7 +239,7 @@
 
                 vec3 inc = 1.0 / abs( ray.dir );
                 // Step size between two samples
-                float delta = min(inc.x, min(inc.y, inc.z)) / float(NB_STEPS);
+                float delta = min(inc.x, min(inc.y, inc.z)) / float(u_quality);
                 // The ray direction is now scaled by the step size.
                 ray.dir = ray.dir * delta;
 
@@ -254,6 +258,10 @@
         <canvas id="glCanvas"></canvas>
         <div id="controls">
             <p id="fpslabel"></p>
+            <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
+                <p style="margin-top: 2px; margin-right: 10px;">quality</p>
+                <input type="range" min="0" max="100" value="50" class="slider" id="qualityslider">
+            </div>
             <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
                 <p style="margin-top: 2px; margin-right: 10px;">density</p>
                 <input type="range" min="0" max="100" value="10" class="slider" id="densityslider">
