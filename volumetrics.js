@@ -118,8 +118,8 @@ function main() {
     //   let y = ev ? h - ev.clientY: 111;
       gl.uniform2f(mouse, 0.5 - mouseX / w, 0.5 - mouseY / h);
       gl.uniform1f(u_time, t/1000);
-      // gl.viewport(0, 0, w, h);
-      // gl.clearColor(0, 0, 0, 1);
+      gl.viewport(0, 0, w, h);
+      gl.clearColor(0, 0, 0, 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       if(animating && document.hasFocus()) {
         requestAnimationFrame(draw);
@@ -129,9 +129,9 @@ function main() {
     }
     fdraw = draw;
 
-    // requestAnimationFrame(fdraw);
+    requestAnimationFrame(fdraw);
 
-    window.onfocus = function() {requestAnimationFrame(draw)}
+    // window.onfocus = function() {requestAnimationFrame(draw)}
 
   }
   
@@ -146,13 +146,13 @@ function main() {
     // }
 
   }
-  window.onkeyup = function(e){
-    if(e.keyCode == 32){
-      if(animating) {
-        animating = false;
-      } else {
-        requestAnimationFrame(fdraw);
-        animating = true;
-      }
-    }
-}
+  // window.onkeyup = function(e){
+  //   if(e.keyCode == 32){
+  //     if(animating) {
+  //       animating = false;
+  //     } else {
+  //       requestAnimationFrame(fdraw);
+  //       animating = true;
+  //     }
+  //   }
+// }
