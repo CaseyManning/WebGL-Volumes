@@ -21,8 +21,8 @@ function main() {
     fpslabel = document.getElementById("fpslabel");
 
     const canvas = document.querySelector("#glCanvas");
-    canvas.width = window.innerWidth; //document.width is obsolete
-    canvas.height = window.innerHeight; //document.height is obsolete
+    canvas.width = Math.min(window.innerWidth, window.innerHeight); //document.width is obsolete
+    canvas.height = Math.min(window.innerWidth, window.innerHeight); //document.height is obsolete
     // Initialize the GL context
     const gl = canvas.getContext("webgl2");
   
