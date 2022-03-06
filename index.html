@@ -41,6 +41,8 @@
             #define MAX_STEPS 200
             #define MAX_DIST 200.
 
+            #define STEP_DIST 0.1
+
             #define NB_STEPS 50
 
             #define hash(p) fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453)
@@ -91,17 +93,17 @@
             }
 
             float traceShadowRay(vec3 pos) {
-                vec3 dir = normalize(vec3(mouse.x, -mouse.y, 0.)) * 0.05;
+                // vec3 dir = normalize(vec3(mouse.x, -mouse.y, 0.)) * 0.05;
+                vec3 dir = normalize(vec3(1, -1, 0.)) * 0.05;
                 
                 pos += dir* 2.5*hash(pos.xy);
 
                 float acc = 0.;
                 for (int i = 0; i < NB_STEPS/2; ++i) {
-                    // Get the voxel at the current ray position.
                     float s = getCloudDensity(pos);
                     
                     // The more we already accumulated, the less opacity we apply.
-                    acc += (1.0 - acc) * s;
+                    acc += s; //(1.0 - acc) * s;
 
                     pos += dir;
 
@@ -118,7 +120,10 @@
                     // Get the voxel at the current ray position.
                     float density = getCloudDensity(ray.origin);
                     
-                    float shadowAmt = traceShadowRay(ray.origin);
+                    float shadowAmt = 0.;
+                    if(density > 0.) {
+                        shadowAmt = traceShadowRay(ray.origin);
+                    }
                     // shadowAmt = ray.origin.y;
 
                     vec3 ambient = vec3(0.1);
@@ -194,6 +199,6 @@
     </head>
     <body>
         <canvas id="glCanvas"></canvas>
-        <p id="fpslabel">12 fps</p>
+        <p id="fpslabel"></p>
     </body>
 </html>
