@@ -113,18 +113,22 @@
                 for (int i = 0; i < NB_STEPS; ++i) {
                     // Get the voxel at the current ray position.
                     float density = getCloudDensity(ray.origin);
-                    
-                    float shadowAmt = 0.;
+
+                    float transmittance = 0.;
                     if(density > 0.) {
-                        shadowAmt = traceShadowRay(ray.origin);
+                        float lineardensity = traceShadowRay(ray.origin);
+                        transmittance = exp(-lineardensity);
                     }
                     // shadowAmt = ray.origin.y;
 
-                    vec3 ambient = vec3(0.05, 0.1, 0.15);
-                    vec3 volumeColor = vec3(0.65, 0.55, 0.45);
+                    vec3 ambient = vec3(0.1, 0.1, 0.1);
+                    vec3 volumeColor = vec3(0.5);
+
+                    vec3 lightColor = vec3(1., 1., 1.);
+                    vec3 lightContrib = lightColor * transmittance;
 
                     if(density > 0.) {
-                        rgbval += (vec3(shadowAmt) + ambient) * density * volumeColor;
+                        rgbval += (lightContrib + ambient) * density * volumeColor;
                     }
 
                     // The more we already accumulated, the less opacity we apply.
