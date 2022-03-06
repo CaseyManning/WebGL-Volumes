@@ -13,6 +13,9 @@ var fpslabel;
 
 var oldTime;
 
+var lastCount = 0;
+var frames = 0;
+
 function main() {
 
     fpslabel = document.getElementById("fpslabel");
@@ -103,8 +106,13 @@ function main() {
 
   
     function draw(t) {
-      
-      fpslabel.innerHTML = "fps: " + Math.floor(1 / ((t - oldTime)/1000));
+      frames += 1;
+      if(t - lastCount > 1000) {
+        fpslabel.innerHTML = "fps: " + frames;
+        frames = 0;
+        lastCount = t;
+      }
+      // fpslabel.innerHTML = "fps: " + Math.floor(1 / ((t - oldTime)/1000));
     //   let ev = e && e.touches ? e.touches[0] : e;
     //   let x = ev ? ev.clientX : 250;
     //   let y = ev ? h - ev.clientY: 111;
