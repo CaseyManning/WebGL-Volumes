@@ -51,6 +51,7 @@
             uniform float u_ambient;
             uniform float u_occlusion;
             uniform int u_quality;
+            uniform float u_jitter;
 
             out vec4 col;
 
@@ -104,16 +105,18 @@
                 return density;
             }
 
-            float traceShadowRay(vec3 pos) {
+            float traceShadowRay(vec3 pos, float jitter) {
                 mat3 rot = rotationMatrix(vec3(0, 1, 0), u_time / 3.);
                 vec3 dir = normalize(vec3(mouse.x, -mouse.y, 0.)) * 0.05;
                 dir *= rot;
                 // vec3 dir = normalize(vec3(1, -1, 0.)) * 0.05;
                 
-                pos += dir* 2.5*hash(pos.xy);
+                pos += dir*jitter;
+
+                pos += dir*0.5;
 
                 float acc = 0.;
-                for (int i = 0; i < u_quality/2; ++i) {
+                for (int i = 0; i < NB_STEPS/2; ++i) {
                     float s = getCloudDensity(pos);
                     
                     // The more we already accumulated, the less opacity we apply.
@@ -134,36 +137,22 @@
 
                 float accumDensity = 0.;
 
-                vec3 currentPos = pos.xyz;
-                for(int i = 0; i < nsteps; i++) {
-                    currentPos += vec3(0., 1., 0.) * stepLength;
-                    accumDensity += getCloudDensity(currentPos) * 2.;
+                vec3 directions[6];
+                directions[0] = vec3(0., 1., 0.);
+                directions[1] = vec3(1., 0., 0.);
+                directions[2] = vec3(0., 0., 1.);
+                directions[3] = vec3(0., -1., 0.);
+                directions[4] = vec3(-1., 0., 0.);
+                directions[5] = vec3(0., 0., -1.);
+
+                for(int j = 0; j < 6; j++) {
+                    vec3 currentPos = pos.xyz;
+                    for(int i = 0; i < nsteps; i++) {
+                        currentPos += directions[j] * stepLength;
+                        accumDensity += getCloudDensity(currentPos) * 2.;
+                    }
                 }
-                currentPos = pos.xyz;
-                for(int i = 0; i < nsteps; i++) {
-                    currentPos += vec3(1., 0., 0.) * stepLength;
-                    accumDensity += getCloudDensity(currentPos) * 2.;
-                }
-                currentPos = pos.xyz;
-                for(int i = 0; i < nsteps; i++) {
-                    currentPos += vec3(0., 0., 1.) * stepLength;
-                    accumDensity += getCloudDensity(currentPos) * 2.;
-                }
-                currentPos = pos.xyz;
-                for(int i = 0; i < nsteps; i++) {
-                    currentPos += vec3(0., -1., 0.) * stepLength;
-                    accumDensity += getCloudDensity(currentPos) * 2.;
-                }
-                currentPos = pos.xyz;
-                for(int i = 0; i < nsteps; i++) {
-                    currentPos += vec3(-1., 0., 0.) * stepLength;
-                    accumDensity += getCloudDensity(currentPos) * 2.;
-                }
-                currentPos = pos.xyz;
-                for(int i = 0; i < nsteps; i++) {
-                    currentPos += vec3(0., 0., -1.) * stepLength;
-                    accumDensity += getCloudDensity(currentPos) * 2.;
-                }
+                
 
                 return exp(-accumDensity / u_density * 15.);
             }
@@ -171,17 +160,21 @@
             vec4 traceViewRay(Ray ray) {
                 float acc = 0.;
                 vec3 rgbval = vec3(0.);
+                float oldj = 0.;
+                float olderJ = 0.;
                 for (int i = 0; i < NB_STEPS; ++i) {
                     // Get the voxel at the current ray position.
                     float density = getCloudDensity(ray.origin);
 
                     float transmittance = 0.;
                     if(density > 0.) {
-                        float lineardensity = traceShadowRay(ray.origin)*u_shadowfactor;
+                        float jitter = 2.5*hash(ray.origin.xy) * u_jitter;
+                        
+                        float lineardensity = traceShadowRay(ray.origin, jitter)*8.;//u_shadowfactor;
                         transmittance = exp(-lineardensity);
                     }
 
-                    float ambocc = 0.3;
+                    float ambocc = 0.5;
                     if(u_occlusion > 0.) {
                         ambocc = computeAmbient(ray.origin, length(ray.dir) * u_occlusion / 10.);
                     }
@@ -245,7 +238,9 @@
 
                 vec4 bg = vec4(0., 0., 0., 1.);
 
-                ray.origin += ray.dir * 1.5*hash(gl_FragCoord.xy);
+                if(u_jitter > 0.) {
+                    ray.origin += ray.dir * 1.5*hash(gl_FragCoord.xy) * u_jitter;
+                }
                 vec4 result = traceViewRay(ray);
 
                 col = bg*(1.-result.a) + result;
@@ -260,15 +255,15 @@
             <p id="fpslabel"></p>
             <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
                 <p style="margin-top: 2px; margin-right: 10px;">quality</p>
-                <input type="range" min="0" max="100" value="50" class="slider" id="qualityslider">
+                <input type="range" min="0" max="150" value="70" class="slider" id="qualityslider">
+            </div>
+            <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
+                <p style="margin-top: 2px; margin-right: 10px;">jitter</p>
+                <input type="range" min="0" max="200" value="80" class="slider" id="jitterslider">
             </div>
             <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
                 <p style="margin-top: 2px; margin-right: 10px;">density</p>
                 <input type="range" min="0" max="100" value="10" class="slider" id="densityslider">
-            </div>
-            <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
-                <p style="margin-top: 2px; margin-right: 10px;">scattering</p>
-                <input type="range" min="0" max="10" value="5" class="slider" id="shadowslider">
             </div>
             <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
                 <p style="margin-top: 2px; margin-right: 10px;">directional</p>
@@ -280,7 +275,7 @@
             </div>
             <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
                 <p style="margin-top: 2px; margin-right: 10px;">occlusion radius</p>
-                <input type="range" min="0" max="50" value="10" class="slider" id="occlusionslider">
+                <input type="range" min="0" max="50" value="0" class="slider" id="occlusionslider">
             </div>
         </div>
         
