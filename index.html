@@ -97,7 +97,7 @@
                 int noiseSize = 32;
                 float density = 0.;
                 // float nosie = texture(uVolume, pos).r/2;
-                if(length(pos - vec3(0.5, 0.5, 0.5)) < 0.2 + texture(uVolume, pos).r/2. + texture(uVolume, pos.xzy*5.).r/12.) {
+                if(length(pos - vec3(0.5, 0.5, 0.5)) < 0.2 + texture(uVolume, pos*1.2).r/2.) {
                     density = u_density/200.;
                 } else {
                     density = 0.;
@@ -168,7 +168,10 @@
 
                     float transmittance = 0.;
                     if(density > 0.) {
-                        float jitter = 2.5*hash(ray.origin.xy) * u_jitter;
+                        float jitter = 0.;
+                        // if(i % 2 == 0) {
+                            jitter = 2.5*hash(ray.origin.xy) * u_jitter;
+                        // }
                         
                         float lineardensity = traceShadowRay(ray.origin, jitter)*8.;//u_shadowfactor;
                         transmittance = exp(-lineardensity);
@@ -238,12 +241,13 @@
 
                 vec4 bg = vec4(0., 0., 0., 1.);
 
-                if(u_jitter > 0.) {
-                    ray.origin += ray.dir * 1.5*hash(gl_FragCoord.xy) * u_jitter;
-                }
+                // if(u_jitter > 0. && int(gl_FragCoord.x) % 2 ==0) {
+                    ray.origin += ray.dir * 2.5*hash(gl_FragCoord.xy) * u_jitter;
+                // }
                 vec4 result = traceViewRay(ray);
 
                 col = bg*(1.-result.a) + result;
+                
              }
         </script>
         <script type='glsl/vertex' id="glsl/vertex" src="shader.vert"></script>
@@ -277,6 +281,7 @@
                 <p style="margin-top: 2px; margin-right: 10px;">occlusion radius</p>
                 <input type="range" min="0" max="50" value="0" class="slider" id="occlusionslider">
             </div>
+            <p id="regenbutton" onclick="regenerateCloud()">regenerate</p>
         </div>
         
     </body>

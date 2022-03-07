@@ -16,15 +16,20 @@ var oldTime;
 var lastCount = 0;
 var frames = 0;
 
+var gl;
+var texture;
+
+var TEX_SIZE = 48;
+
 function main() {
 
     fpslabel = document.getElementById("fpslabel");
 
     const canvas = document.querySelector("#glCanvas");
-    canvas.width = Math.min(window.innerWidth, window.innerHeight); //document.width is obsolete
-    canvas.height = Math.min(window.innerWidth, window.innerHeight); //document.height is obsolete
+    canvas.width = Math.min(window.innerWidth, window.innerHeight);
+    canvas.height = Math.min(window.innerWidth, window.innerHeight);
     // Initialize the GL context
-    const gl = canvas.getContext("webgl2");
+    gl = canvas.getContext("webgl2");
   
     // Only continue if WebGL is available and working
     if (gl === null) {
@@ -69,24 +74,23 @@ function main() {
     let u_quality = gl.getUniformLocation(pid, 'u_quality');
     let u_jitter = gl.getUniformLocation(pid, 'u_jitter');
     
-    var SIZE = 32;
     
-    var perl = new Perlin(12);
+    var perl = new Perlin(Math.random() * 10);
 
-    var data = new Uint8Array(SIZE * SIZE * SIZE);
-    for (var k = 0; k < SIZE; ++k) {
-        for (var j = 0; j < SIZE; ++j) {
-            for (var i = 0; i < SIZE; ++i) {
-                data[i + j * SIZE + k * SIZE * SIZE] = perl.noise(i/10, j/10, k/10) * 256;
+    var data = new Uint8Array(TEX_SIZE * TEX_SIZE * TEX_SIZE);
+    for (var k = 0; k < TEX_SIZE; ++k) {
+        for (var j = 0; j < TEX_SIZE; ++j) {
+            for (var i = 0; i < TEX_SIZE; ++i) {
+                data[i + j * TEX_SIZE + k * TEX_SIZE * TEX_SIZE] = perl.noise(i/10, j/10, k/10) * 256;
             }
         }
     }
 
-    var texture = gl.createTexture();
+    texture = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_3D, texture);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_BASE_LEVEL, 0);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAX_LEVEL, Math.log2(SIZE));
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAX_LEVEL, Math.log2(TEX_SIZE));
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
@@ -94,9 +98,9 @@ function main() {
         gl.TEXTURE_3D,  // target
         0,              // level
         gl.R8,        // internalformat
-        SIZE,           // width
-        SIZE,           // height
-        SIZE,           // depth
+        TEX_SIZE,           // width
+        TEX_SIZE,           // height
+        TEX_SIZE,           // depth
         0,              // border
         gl.RED,         // format
         gl.UNSIGNED_BYTE,       // type
@@ -110,8 +114,6 @@ function main() {
 
       gl.uniform2f(u_resolution, w, h);
 
-
-  
     function draw(t) {
       frames += 1;
       if(t - lastCount > 1000) {
@@ -169,4 +171,33 @@ function main() {
         animating = true;
       }
     }
+  }
+
+  function regenerateCloud() {
+    var perl = new Perlin(Math.random() * 100);
+
+    var data = new Uint8Array(TEX_SIZE * TEX_SIZE * TEX_SIZE);
+    for (var k = 0; k < TEX_SIZE; ++k) {
+        for (var j = 0; j < TEX_SIZE; ++j) {
+            for (var i = 0; i < TEX_SIZE; ++i) {
+                data[i + j * TEX_SIZE + k * TEX_SIZE * TEX_SIZE] = perl.noise(i/10, j/10, k/10) * 256;
+            }
+        }
+    }
+
+    gl.texImage3D(
+        gl.TEXTURE_3D,  // target
+        0,              // level
+        gl.R8,        // internalformat
+        TEX_SIZE,           // width
+        TEX_SIZE,           // height
+        TEX_SIZE,           // depth
+        0,              // border
+        gl.RED,         // format
+        gl.UNSIGNED_BYTE,       // type
+        data            // pixel
+      );
+
+      gl.generateMipmap(gl.TEXTURE_3D);
+
   }
