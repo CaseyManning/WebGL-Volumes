@@ -93,18 +93,13 @@
             }
 
             float getCloudDensity(vec3 pos) {
-                // int noiseSize = 32;
                 float density = 0.;
-                // // float nosie = texture(uVolume, pos).r/2;
-                if(length(pos - vec3(0.5, 0.5, 0.5)) < -0.1 + texture(uVolume, pos/5.).r*0.7 + texture(uVolume, pos*1.2).r/8.) {
+                if(length(pos - vec3(0.5, 0.5, 0.5)) < -0.1 + texture(uVolume, pos/5.).r*0.7 + texture(uVolume, pos/1.5).r/7. + texture(uVolume, pos*2.).r/15.) {
                     density = u_density/200.;
                 } else {
                     density = 0.;
                 }
-                // float val = max(3. * -(length(pos - vec3(0.5, 0.5, 0.5)))*(length(pos - vec3(0.5, 0.5, 0.5)))*(length(pos - vec3(0.5, 0.5, 0.5)))*(length(pos - vec3(0.5, 0.5, 0.5))) + 1., 0.) / 20.;
-                // return val * u_density/200.;
                 return density;
-                // return texture(uVolume, pos).r / 100.;
             }
 
             float traceShadowRay(vec3 pos, float jitter) {
