@@ -19,7 +19,7 @@ var frames = 0;
 var gl;
 var texture;
 
-var TEX_SIZE = 48;
+var TEX_SIZE = 128;
 
 function main() {
 
@@ -77,15 +77,6 @@ function main() {
     
     var perl = new Perlin(Math.random() * 10);
 
-    var data = new Uint8Array(TEX_SIZE * TEX_SIZE * TEX_SIZE);
-    for (var k = 0; k < TEX_SIZE; ++k) {
-        for (var j = 0; j < TEX_SIZE; ++j) {
-            for (var i = 0; i < TEX_SIZE; ++i) {
-                data[i + j * TEX_SIZE + k * TEX_SIZE * TEX_SIZE] = perl.noise(i/10, j/10, k/10) * 256;
-            }
-        }
-    }
-
     texture = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_3D, texture);
@@ -94,21 +85,7 @@ function main() {
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-    gl.texImage3D(
-        gl.TEXTURE_3D,  // target
-        0,              // level
-        gl.R8,        // internalformat
-        TEX_SIZE,           // width
-        TEX_SIZE,           // height
-        TEX_SIZE,           // depth
-        0,              // border
-        gl.RED,         // format
-        gl.UNSIGNED_BYTE,       // type
-        data            // pixel
-      );
-
-      gl.generateMipmap(gl.TEXTURE_3D);
-
+    regenerateCloud();
     
       gl.uniform1i(u_volume, 0);
 
@@ -121,6 +98,7 @@ function main() {
         frames = 0;
         lastCount = t;
       }
+
       // fpslabel.innerHTML = "fps: " + Math.floor(1 / ((t - oldTime)/1000));
     //   let ev = e && e.touches ? e.touches[0] : e;
     //   let x = ev ? ev.clientX : 250;
@@ -164,25 +142,30 @@ function main() {
   }
   window.onkeyup = function(e){
     if(e.keyCode == 32){
-      if(animating) {
-        animating = false;
-      } else {
-        requestAnimationFrame(fdraw);
-        animating = true;
-      }
+      regenerateCloud();
+      // if(animating) {
+      //   animating = false;
+      // } else {
+      //   requestAnimationFrame(fdraw);
+      //   animating = true;
+      // }
     }
   }
 
   function regenerateCloud() {
-    var perl = new Perlin(Math.random() * 100);
+    var perl = new Perlin(Math.random()*100);
 
     var data = new Uint8Array(TEX_SIZE * TEX_SIZE * TEX_SIZE);
+
+    var div = 8;
+
     for (var k = 0; k < TEX_SIZE; ++k) {
         for (var j = 0; j < TEX_SIZE; ++j) {
-            for (var i = 0; i < TEX_SIZE; ++i) {
-                data[i + j * TEX_SIZE + k * TEX_SIZE * TEX_SIZE] = perl.noise(i/10, j/10, k/10) * 256;
+            for (var i = 0; i < TEX_SIZE; ++i) {  
+              data[i + j * TEX_SIZE + k * TEX_SIZE * TEX_SIZE] = perl.noise(k/div, j/div, i/div) * 256;
             }
         }
+        
     }
 
     gl.texImage3D(

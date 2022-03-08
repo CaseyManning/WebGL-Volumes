@@ -32,7 +32,6 @@
 
             precision highp float;
 
-
             precision highp sampler3D;
             uniform sampler3D uVolume;
 
@@ -94,19 +93,22 @@
             }
 
             float getCloudDensity(vec3 pos) {
-                int noiseSize = 32;
+                // int noiseSize = 32;
                 float density = 0.;
-                // float nosie = texture(uVolume, pos).r/2;
-                if(length(pos - vec3(0.5, 0.5, 0.5)) < 0.2 + texture(uVolume, pos*1.2).r/2.) {
+                // // float nosie = texture(uVolume, pos).r/2;
+                if(length(pos - vec3(0.5, 0.5, 0.5)) < -0.1 + texture(uVolume, pos/5.).r*0.7 + texture(uVolume, pos*1.2).r/8.) {
                     density = u_density/200.;
                 } else {
                     density = 0.;
                 }
+                // float val = max(3. * -(length(pos - vec3(0.5, 0.5, 0.5)))*(length(pos - vec3(0.5, 0.5, 0.5)))*(length(pos - vec3(0.5, 0.5, 0.5)))*(length(pos - vec3(0.5, 0.5, 0.5))) + 1., 0.) / 20.;
+                // return val * u_density/200.;
                 return density;
+                // return texture(uVolume, pos).r / 100.;
             }
 
             float traceShadowRay(vec3 pos, float jitter) {
-                mat3 rot = rotationMatrix(vec3(0, 1, 0), u_time / 3.);
+                mat3 rot = rotationMatrix(vec3(0, 1, 0), -u_time / 3.);
                 vec3 dir = normalize(vec3(mouse.x, -mouse.y, 0.)) * 0.05;
                 dir *= rot;
                 // vec3 dir = normalize(vec3(1, -1, 0.)) * 0.05;
@@ -281,7 +283,7 @@
                 <p style="margin-top: 2px; margin-right: 10px;">occlusion radius</p>
                 <input type="range" min="0" max="50" value="0" class="slider" id="occlusionslider">
             </div>
-            <p id="regenbutton" onclick="regenerateCloud()">regenerate</p>
+            <p id="regenbutton" onclick="regenerateCloud()">regenerate [space]</p>
         </div>
         
     </body>
