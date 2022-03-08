@@ -52,6 +52,8 @@
             uniform int u_quality;
             uniform float u_jitter;
 
+            uniform int u_contiguous;
+
             out vec4 col;
 
             mat3 rotationMatrix(vec3 axis, float angle) {
@@ -121,7 +123,7 @@
 
                     pos += dir;
 
-                    if (acc > 0.95) { break; }
+                    if (acc > 0.95 || (getCloudDensity(pos) == 0. && u_contiguous == 1)) { break; }
 
                 }
                 return acc;
@@ -281,6 +283,7 @@
             <p id="regenbutton" onclick="regenerateCloud()">regenerate [space]</p>
             <p id="spinbutton" onclick="toggleSpin()">spin: on</p>
             <p id="animatebutton" onclick="toggleAnimate()">animate: off</p>
+            <p id="contiguousbutton" onclick="toggleContiguous()">assume contiguous: on</p>
         </div>
         
     </body>

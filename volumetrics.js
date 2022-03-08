@@ -21,6 +21,8 @@ var texture;
 
 var spin = true;
 var animate = false;
+var contiguous = true;
+
 
 var TEX_SIZE = 128;
 
@@ -76,6 +78,7 @@ function main() {
     let u_occlusion = gl.getUniformLocation(pid, 'u_occlusion');
     let u_quality = gl.getUniformLocation(pid, 'u_quality');
     let u_jitter = gl.getUniformLocation(pid, 'u_jitter');
+    let u_contiguous = gl.getUniformLocation(pid, 'u_contiguous');
     
     
     var perl = new Perlin(Math.random() * 10);
@@ -115,6 +118,7 @@ function main() {
       gl.uniform1f(u_occlusion, document.getElementById("occlusionslider").value) ;
       gl.uniform1i(u_quality, document.getElementById("qualityslider").value) ;
       gl.uniform1f(u_jitter, document.getElementById("jitterslider").value / 100.0) ;
+      gl.uniform1i(u_contiguous, contiguous ? 1 : 0) ;
       gl.viewport(0, 0, w, h);
       gl.clearColor(0, 0, 0, 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -212,5 +216,15 @@ function main() {
     } else {
       document.getElementById("animatebutton").innerHTML = "animate: on";
       animate = true;
+    }
+  }
+
+  function toggleContiguous() {
+    if(contiguous) {
+      document.getElementById("contiguousbutton").innerHTML = "assume contiguous: off";
+      contiguous = false;
+    } else {
+      document.getElementById("contiguousbutton").innerHTML = "assume contiguous: on";
+      contiguous = true;
     }
   }
