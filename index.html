@@ -52,7 +52,10 @@
             uniform int u_quality;
             uniform float u_jitter;
 
+            uniform float u_animate;
+
             uniform int u_contiguous;
+            uniform int u_spin;
 
             out vec4 col;
 
@@ -96,7 +99,7 @@
 
             float getCloudDensity(vec3 pos) {
                 float density = 0.;
-                if(length(pos - vec3(0.5, 0.5, 0.5)) < -0.2 + texture(uVolume, pos/2.).r*1.2) {
+                if(length(pos - vec3(0.5, 0.5, 0.5)) < -0.2 + texture(uVolume, pos/2. + vec3(1.,0.,0.)*(u_time/5.*u_animate)).r*1.2) {
                     density = u_density/200.;
                 } else {
                     density = 0.;
@@ -105,9 +108,11 @@
             }
 
             float traceShadowRay(vec3 pos, float jitter) {
-                mat3 rot = rotationMatrix(vec3(0, 1, 0), -u_time / 3.);
                 vec3 dir = normalize(vec3(mouse.x, -mouse.y, 0.)) * 0.05;
-                dir *= rot;
+                if(u_spin == 1) {
+                    mat3 rot = rotationMatrix(vec3(0, 1, 0), -u_time / 3.);
+                    dir *= rot;
+                }
                 // vec3 dir = normalize(vec3(1, -1, 0.)) * 0.05;
                 
                 pos += dir*jitter;
@@ -166,6 +171,8 @@
                     float density = getCloudDensity(ray.origin);
 
                     float transmittance = 0.;
+                    float ambocc = 0.5;
+
                     if(density > 0.) {
                         float jitter = 0.;
                         // if(i % 2 == 0) {
@@ -174,12 +181,13 @@
                         
                         float lineardensity = traceShadowRay(ray.origin, jitter)*8.;//u_shadowfactor;
                         transmittance = exp(-lineardensity);
+
+                        if(u_occlusion > 0.) {
+                            ambocc = computeAmbient(ray.origin, length(ray.dir) * u_occlusion / 10.);
+                        }
                     }
 
-                    float ambocc = 0.5;
-                    if(u_occlusion > 0.) {
-                        ambocc = computeAmbient(ray.origin, length(ray.dir) * u_occlusion / 10.);
-                    }
+                    
 
                     vec3 ambient = vec3(ambocc) * u_ambient;
 
@@ -226,11 +234,13 @@
                 // We don't want to spend time sampling nothing out of the volume!
                 ray.origin = ray.origin + near * ray.dir;
 
-                mat3 rot = rotationMatrix(vec3(0, 1, 0), u_time / 3.);
-                ray.origin -= vec3(0.5, 0.5, 0.5);
-                ray.origin = rot * ray.origin;
-                ray.dir = rot * ray.dir;
-                ray.origin += vec3(0.5, 0.5, 0.5);
+                if(u_spin == 1) {
+                    mat3 rot = rotationMatrix(vec3(0, 1, 0), u_time / 3.);
+                    ray.origin -= vec3(0.5, 0.5, 0.5);
+                    ray.origin = rot * ray.origin;
+                    ray.dir = rot * ray.dir;
+                    ray.origin += vec3(0.5, 0.5, 0.5);
+                }
 
                 vec3 inc = 1.0 / abs( ray.dir );
                 // Step size between two samples
@@ -270,7 +280,7 @@
             </div>
             <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
                 <p style="margin-top: 2px; margin-right: 10px;">directional</p>
-                <input type="range" min="0" max="100" value="100" class="slider" id="lightslider">
+                <input type="range" min="0" max="100" value="80" class="slider" id="lightslider">
             </div>
             <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
                 <p style="margin-top: 2px; margin-right: 10px;">ambient</p>
@@ -278,10 +288,11 @@
             </div>
             <div style="display: flex; flex-wrap: nowrap; margin-top: 10px;">
                 <p style="margin-top: 2px; margin-right: 10px;">occlusion radius</p>
-                <input type="range" min="0" max="50" value="0" class="slider" id="occlusionslider">
+                <input type="range" min="0" max="50" value="25" class="slider" id="occlusionslider">
             </div>
             <p id="regenbutton" onclick="regenerateCloud()">regenerate [space]</p>
             <p id="spinbutton" onclick="toggleSpin()">spin: on</p>
+            <p id="animatebutton" onclick="toggleAnimate()">animate: off</p>
             <p id="contiguousbutton" onclick="toggleContiguous()">assume contiguous: on</p>
         </div>
         

@@ -79,6 +79,8 @@ function main() {
     let u_quality = gl.getUniformLocation(pid, 'u_quality');
     let u_jitter = gl.getUniformLocation(pid, 'u_jitter');
     let u_contiguous = gl.getUniformLocation(pid, 'u_contiguous');
+    let u_spin = gl.getUniformLocation(pid, 'u_spin');
+    let u_animate = gl.getUniformLocation(pid, 'u_animate');
     
     
     var perl = new Perlin(Math.random() * 10);
@@ -110,9 +112,9 @@ function main() {
     //   let x = ev ? ev.clientX : 250;
     //   let y = ev ? h - ev.clientY: 111;
       gl.uniform2f(mouse, 0.5 - mouseX / w, 0.5 - mouseY / h);
-      if(spin) {
-        gl.uniform1f(u_time, t/1000);
-      }
+
+      gl.uniform1f(u_time, t/1000);
+
       gl.uniform1f(u_density, document.getElementById("densityslider").value);
       gl.uniform1f(u_shadowfactor, 8);
       gl.uniform1f(u_light, document.getElementById("lightslider").value/ 100.0) ;
@@ -121,6 +123,8 @@ function main() {
       gl.uniform1i(u_quality, document.getElementById("qualityslider").value) ;
       gl.uniform1f(u_jitter, document.getElementById("jitterslider").value / 100.0) ;
       gl.uniform1i(u_contiguous, contiguous ? 1 : 0) ;
+      gl.uniform1i(u_spin, spin ? 1 : 0) ;
+      gl.uniform1f(u_animate, animate ? 1 : 0) ;
       gl.viewport(0, 0, w, h);
       gl.clearColor(0, 0, 0, 1);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
