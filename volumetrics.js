@@ -19,6 +19,9 @@ var frames = 0;
 var gl;
 var texture;
 
+var spin = true;
+var animate = false;
+
 var TEX_SIZE = 128;
 
 function main() {
@@ -151,18 +154,26 @@ function main() {
       // }
     }
   }
-
+  var firstTIme = true;
   function regenerateCloud() {
-    var perl = new Perlin(Math.random()*100);
+    var perl;
+    if(firstTIme) {
+      perl = new Perlin(12);
+      firstTIme = false;
+    } else {
+      perl = new Perlin(Math.random()*100);
+    }
 
     var data = new Uint8Array(TEX_SIZE * TEX_SIZE * TEX_SIZE);
 
-    var div = 8;
+    var div = 5;
+    var div2 = 15;
+    var div3 = 50;
 
     for (var k = 0; k < TEX_SIZE; ++k) {
         for (var j = 0; j < TEX_SIZE; ++j) {
             for (var i = 0; i < TEX_SIZE; ++i) {  
-              data[i + j * TEX_SIZE + k * TEX_SIZE * TEX_SIZE] = perl.noise(k/div, j/div, i/div) * 256;
+              data[i + j * TEX_SIZE + k * TEX_SIZE * TEX_SIZE] = perl.noise((k*div)/TEX_SIZE, (j*div)/TEX_SIZE, (i*div)/TEX_SIZE) * 158 + perl.noise((k*div2)/TEX_SIZE, (j*div2)/TEX_SIZE, (i*div2)/TEX_SIZE) *64 + perl.noise((k*div3)/TEX_SIZE, (j*div3)/TEX_SIZE, (i*div3)/TEX_SIZE) *22;
             }
         }
         
@@ -183,4 +194,23 @@ function main() {
 
       gl.generateMipmap(gl.TEXTURE_3D);
 
+  }
+
+  function toggleSpin() {
+    if(spin) {
+      document.getElementById("spinbutton").innerHTML = "spin: off";
+      spin = false;
+    } else {
+      document.getElementById("spinbutton").innerHTML = "spin: on";
+      spin = true;
+    }
+  }
+  function toggleAnimate() {
+    if(animate) {
+      document.getElementById("animatebutton").innerHTML = "animate: off";
+      animate = false;
+    } else {
+      document.getElementById("animatebutton").innerHTML = "animate: on";
+      animate = true;
+    }
   }

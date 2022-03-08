@@ -94,7 +94,7 @@
 
             float getCloudDensity(vec3 pos) {
                 float density = 0.;
-                if(length(pos - vec3(0.5, 0.5, 0.5)) < -0.1 + texture(uVolume, pos/5.).r*0.7 + texture(uVolume, pos/1.5).r/7. + texture(uVolume, pos*2.).r/15.) {
+                if(length(pos - vec3(0.5, 0.5, 0.5)) < -0.2 + texture(uVolume, pos/2.).r*1.2) {
                     density = u_density/200.;
                 } else {
                     density = 0.;
@@ -279,6 +279,8 @@
                 <input type="range" min="0" max="50" value="0" class="slider" id="occlusionslider">
             </div>
             <p id="regenbutton" onclick="regenerateCloud()">regenerate [space]</p>
+            <p id="spinbutton" onclick="toggleSpin()">spin: on</p>
+            <p id="animatebutton" onclick="toggleAnimate()">animate: off</p>
         </div>
         
     </body>
