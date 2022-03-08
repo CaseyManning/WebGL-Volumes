@@ -36,10 +36,10 @@ p {
 
 }
 #regenbutton, #animatebutton, #contiguousbutton, #spinbutton {
-    margin-top: 15px;
+    margin-top: 10px;
     transition: 0.2s;
 }
-#regenbutton:hover, #animatebutton:hover, #contiguousbutton:hover {
+#regenbutton:hover, #animatebutton:hover, #contiguousbutton:hover, #spinbutton:hover {
     /* color: rgb(63, 116, 197); */
     text-decoration: underline;
     cursor: pointer;

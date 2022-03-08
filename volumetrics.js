@@ -110,7 +110,9 @@ function main() {
     //   let x = ev ? ev.clientX : 250;
     //   let y = ev ? h - ev.clientY: 111;
       gl.uniform2f(mouse, 0.5 - mouseX / w, 0.5 - mouseY / h);
-      gl.uniform1f(u_time, t/1000);
+      if(spin) {
+        gl.uniform1f(u_time, t/1000);
+      }
       gl.uniform1f(u_density, document.getElementById("densityslider").value);
       gl.uniform1f(u_shadowfactor, 8);
       gl.uniform1f(u_light, document.getElementById("lightslider").value/ 100.0) ;
