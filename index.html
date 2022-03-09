@@ -99,7 +99,7 @@
 
             float getCloudDensity(vec3 pos) {
                 float density = 0.;
-                if(length(pos - vec3(0.5, 0.5, 0.5)) < -0.2 + texture(uVolume, pos/2. + vec3(1.,0.,0.)*(u_time/5.*u_animate)).r*1.2) {
+                if(texture(uVolume, pos + vec3(1.,0.,0.)*(u_time/5.*u_animate)).r*1.2 + texture(uVolume, pos + vec3(1.,0.5,0.)*(u_time/3.*u_animate)).r*1.2 < 1.) {
                     density = u_density/200.;
                 } else {
                     density = 0.;
@@ -108,7 +108,7 @@
             }
 
             float traceShadowRay(vec3 pos, float jitter) {
-                vec3 dir = normalize(vec3(mouse.x, -mouse.y, 0.)) * 0.05;
+                vec3 dir = normalize(vec3(0.5, 0., -1.)) * 0.05;
                 if(u_spin == 1) {
                     mat3 rot = rotationMatrix(vec3(0, 1, 0), -u_time / 3.);
                     dir *= rot;
@@ -189,7 +189,7 @@
 
                     
 
-                    vec3 ambient = vec3(ambocc) * u_ambient;
+                    vec3 ambient = vec3(ambocc) * u_ambient * vec3(177./255., 219./255., 240./255.);
 
                     vec3 volumeColor = vec3(1.);
 
@@ -248,7 +248,7 @@
                 // The ray direction is now scaled by the step size.
                 ray.dir = ray.dir * delta;
 
-                vec4 bg = vec4(0., 0., 0., 1.);
+                vec4 bg = vec4(88./255., 193./255., 245./255., 1.);
 
                 // if(u_jitter > 0. && int(gl_FragCoord.x) % 2 ==0) {
                     ray.origin += ray.dir * 2.5*hash(gl_FragCoord.xy) * u_jitter;
