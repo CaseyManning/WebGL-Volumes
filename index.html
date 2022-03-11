@@ -99,8 +99,10 @@
 
             float getCloudDensity(vec3 pos) {
                 float density = 0.;
-                if(texture(uVolume, pos + vec3(1.,0.,0.)*(u_time/5.*u_animate)).r*1.2 + texture(uVolume, pos + vec3(1.,0.5,0.)*(u_time/3.*u_animate)).r*1.2 < 1.) {
+                if(texture(uVolume, (pos - vec3(0.5, 0.5, 0.5))/3. + vec3(0.5, 0.5, 0.5) + vec3(1.,0.,0.)*(u_time/5.*u_animate)).r*1.2 + texture(uVolume, pos/2. + vec3(1.,0.5,0.)*(u_time/3.*u_animate)).r*1.2 < 1.) {
                     density = u_density/200.;
+                } else if(texture(uVolume, (pos - vec3(0.5, 0.5, 0.5))/3. + vec3(0.5, 0.5, 0.5) + vec3(1.,0.,0.)*(u_time/5.*u_animate)).r*0.7 + texture(uVolume, pos/4. + vec3(1.,0.5,0.)*(u_time/3.*u_animate)).r*1.4 < 0.9) {
+                    density = u_density/400.;
                 } else {
                     density = 0.;
                 }
