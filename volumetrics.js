@@ -183,7 +183,10 @@ function main() {
     for (var k = 0; k < TEX_SIZE; ++k) {
         for (var j = 0; j < TEX_SIZE; ++j) {
             for (var i = 0; i < TEX_SIZE; ++i) {  
-              data[i + j * TEX_SIZE + k * TEX_SIZE * TEX_SIZE] = perl.noise((k*div)/TEX_SIZE, (j*div)/TEX_SIZE, (i*div)/TEX_SIZE) * 158 + perl.noise((k*div2)/TEX_SIZE, (j*div2)/TEX_SIZE, (i*div2)/TEX_SIZE) *64 + perl.noise((k*div3)/TEX_SIZE, (j*div3)/TEX_SIZE, (i*div3)/TEX_SIZE) *22;
+              var a = k;//TEX_SIZE/2 - Math.abs(k - TEX_SIZE/2);
+              var b = j;//TEX_SIZE/2 - Math.abs(j - TEX_SIZE/2);
+              var c = i;//TEX_SIZE/2 - Math.abs(i - TEX_SIZE/2);
+              data[i + j * TEX_SIZE + k * TEX_SIZE * TEX_SIZE] = perl.noise((a*div)/TEX_SIZE, (b*div)/TEX_SIZE, (c*div)/TEX_SIZE) * 158 + perl.noise((a*div2)/TEX_SIZE, (b*div2)/TEX_SIZE, (c*div2)/TEX_SIZE) *64 + perl.noise((a*div3)/TEX_SIZE, (b*div3)/TEX_SIZE, (c*div3)/TEX_SIZE) *22;
             }
         }
         

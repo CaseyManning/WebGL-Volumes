@@ -99,7 +99,9 @@
 
             float getCloudDensity(vec3 pos) {
                 float density = 0.;
-                if(length(pos - vec3(0.5, 0.5, 0.5)) < -0.2 + texture(uVolume, pos/2. + vec3(1.,0.,0.)*(u_time/5.*u_animate)).r*1.2) {
+                vec3 center = vec3(0.5, 0.5, 0.5);
+                float noise = texture(uVolume, (pos - center)/2. + center).r;
+                if(length(pos - center) <noise) {
                     density = u_density/200.;
                 } else {
                     density = 0.;
@@ -128,7 +130,7 @@
 
                     pos += dir;
 
-                    if (acc > 0.95 || (getCloudDensity(pos) == 0. && u_contiguous == 1)) { break; }
+                    if (acc > 0.95 || (s == 0. && u_contiguous == 1)) { break; }
 
                 }
                 return acc;
@@ -191,9 +193,9 @@
 
                     vec3 ambient = vec3(ambocc) * u_ambient;
 
-                    vec3 volumeColor = vec3(1.);
+                    vec3 volumeColor = vec3(1., 1., 1.); //vec3(51./255., 10./255., 12./255.);
 
-                    vec3 lightColor = vec3(1., 1., 1.);
+                    vec3 lightColor = vec3(124./255., 125./255., 194./255.);
                     vec3 lightContrib = lightColor * transmittance * u_light;
 
                     if(density > 0.) {
@@ -248,7 +250,7 @@
                 // The ray direction is now scaled by the step size.
                 ray.dir = ray.dir * delta;
 
-                vec4 bg = vec4(0., 0., 0., 1.);
+                vec4 bg = vec4(0.,0.,0., 1.); //mix(vec4(50./255., 114./255., 140./255., 1.), vec4(90./255., 127./255., 161./255., 1.), gl_FragCoord.y/u_resolution.y);
 
                 // if(u_jitter > 0. && int(gl_FragCoord.x) % 2 ==0) {
                     ray.origin += ray.dir * 2.5*hash(gl_FragCoord.xy) * u_jitter;
