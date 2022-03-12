@@ -19,7 +19,6 @@
 
  
             void main() {
-                // Hardcoded for now. This should the camera position.
                 vec3 cameraPosition = vec3(0.0, 0.0, 2.0);
 
                 vRay.dir = coords.xyz - cameraPosition;
@@ -100,8 +99,8 @@
             float getCloudDensity(vec3 pos) {
                 float density = 0.;
                 vec3 center = vec3(0.5, 0.5, 0.5);
-                float noise = texture(uVolume, (pos - center)/2. + center).r;
-                if(length(pos - center) <noise) {
+                float noise = texture(uVolume, (pos - center)/2. + center + u_animate * vec3(1.,0.,0.)*u_time/5.).r;
+                if(length(pos - center) <noise*1.2) {
                     density = u_density/200.;
                 } else {
                     density = 0.;
@@ -115,7 +114,6 @@
                     mat3 rot = rotationMatrix(vec3(0, 1, 0), -u_time / 3.);
                     dir *= rot;
                 }
-                // vec3 dir = normalize(vec3(1, -1, 0.)) * 0.05;
                 
                 pos += dir*jitter;
 
@@ -125,7 +123,6 @@
                 for (int i = 0; i < NB_STEPS/2; ++i) {
                     float s = getCloudDensity(pos);
                     
-                    // The more we already accumulated, the less opacity we apply.
                     acc += s; //(1.0 - acc) * s;
 
                     pos += dir;
@@ -169,7 +166,6 @@
                 float oldj = 0.;
                 float olderJ = 0.;
                 for (int i = 0; i < NB_STEPS; ++i) {
-                    // Get the voxel at the current ray position.
                     float density = getCloudDensity(ray.origin);
 
                     float transmittance = 0.;
@@ -195,17 +191,15 @@
 
                     vec3 volumeColor = vec3(1., 1., 1.); //vec3(51./255., 10./255., 12./255.);
 
-                    vec3 lightColor = vec3(124./255., 125./255., 194./255.);
+                    vec3 lightColor = vec3(34./255., 55./255., 154./255.) * 3.;
                     vec3 lightContrib = lightColor * transmittance * u_light;
 
                     if(density > 0.) {
                         rgbval += (lightContrib + ambient) * density * volumeColor;
                     }
 
-                    // The more we already accumulated, the less opacity we apply.
                      acc += (1.0 - acc) * density;
 
-                    // Early termination: after this threshold, accumulating becomes insignificant.
                     if (acc > 0.95) { break; }
 
                     float steplength = 1.;
@@ -219,21 +213,15 @@
 
        
              void main(void) {
-                // vec2 xy = gl_FragCoord.xy / u_resolution;
-
-                //vec2 uv = (gl_FragCoord.xy-.5*u_resolution.xy)/u_resolution.y;
                 
                 Ray ray;
                 ray.origin = vRay.origin;
                 ray.dir = normalize(vRay.dir);
 
-                // Solves a ray - Unit Box equation to determine the value of the closest and
                 float near = 0.0;
                 float far = 0.0;
                 computeNearFar(ray, near, far);
 
-                // Moves the ray origin to the closest intersection.
-                // We don't want to spend time sampling nothing out of the volume!
                 ray.origin = ray.origin + near * ray.dir;
 
                 if(u_spin == 1) {
@@ -245,9 +233,7 @@
                 }
 
                 vec3 inc = 1.0 / abs( ray.dir );
-                // Step size between two samples
                 float delta = min(inc.x, min(inc.y, inc.z)) / float(u_quality);
-                // The ray direction is now scaled by the step size.
                 ray.dir = ray.dir * delta;
 
                 vec4 bg = vec4(0.,0.,0., 1.); //mix(vec4(50./255., 114./255., 140./255., 1.), vec4(90./255., 127./255., 161./255., 1.), gl_FragCoord.y/u_resolution.y);
