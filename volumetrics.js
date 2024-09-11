@@ -19,9 +19,9 @@ var frames = 0;
 var gl;
 var texture;
 
-var spin = true;
-var animate = false;
-var contiguous = true;
+var spin = false;
+var animate = true;
+var contiguous = false;
 
 
 var TEX_SIZE = 128;
